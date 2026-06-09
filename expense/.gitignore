@@ -1,0 +1,72 @@
+# =========================
+# IntelliJ
+# =========================
+.idea/
+*.iml
+*.ipr
+*.iws
+
+# =========================
+# VS Code
+# =========================
+.vscode/
+
+# =========================
+# Environment Files
+# =========================
+.env
+.env.*
+
+# =========================
+# Spring Boot
+# =========================
+target/
+HELP.md
+
+# Ignore application configs containing secrets
+src/main/resources/application-local.properties
+src/main/resources/application-dev.properties
+
+# =========================
+# Maven
+# =========================
+.mvn/wrapper/maven-wrapper.jar
+
+# =========================
+# Logs
+# =========================
+*.log
+logs/
+
+# =========================
+# OS Files
+# =========================
+.DS_Store
+Thumbs.db
+
+# =========================
+# NetBeans
+# =========================
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+build/
+
+# =========================
+# STS
+# =========================
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+.sts4-cache
+
+# =========================
+# Node Modules
+# =========================
+node_modules/
+dist/
