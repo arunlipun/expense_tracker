@@ -16,6 +16,6 @@ public class StartupLogger implements CommandLineRunner {
     public void run(String... args) {
         log.info("Expense Tracker application started successfully.");
         log.info("MongoDB connection initialized.");
-        log.info("API base URL: http://localhost:8080/api/expenses");
+
     }
 }
