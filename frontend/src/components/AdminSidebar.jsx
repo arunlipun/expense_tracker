@@ -1,25 +1,12 @@
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 
 const AdminSidebar = () => {
   const [open, setOpen] = useState(false);
-
   const navigate = useNavigate();
 
   const logout = () => {
@@ -30,65 +17,38 @@ const AdminSidebar = () => {
 
   return (
     <>
-      {/* Mobile Header */}
-
-      <div className="md:hidden flex justify-between items-center p-4 bg-slate-800 text-white sticky top-0 z-50">
-
-        <h2 className="font-bold text-lg">
-          Admin Panel
-        </h2>
-
+      <div className="md:hidden sticky top-0 z-50 flex items-center justify-between border-b border-slate-700 bg-slate-900 px-4 py-4 text-white shadow-sm">
+        <h2 className="text-lg font-semibold tracking-wide">Admin Panel</h2>
         <button
           onClick={() => setOpen(!open)}
-          className="text-2xl"
+          className="rounded-md p-2 text-2xl transition hover:bg-white/10"
         >
           ☰
         </button>
-
       </div>
-
-      {/* Overlay */}
 
       {open && (
         <div
-          className="fixed inset-0 bg-black/40 z-40 md:hidden"
+          className="fixed inset-0 z-40 bg-black/40 backdrop-blur-sm md:hidden"
           onClick={() => setOpen(false)}
         />
       )}
 
-      {/* Sidebar */}
-
       <div
-        className={`
-          fixed md:static
-          top-0 left-0
-          h-screen
-          w-64
-          bg-white
-          border-r
-          shadow-lg
-          z-50
-          transform
-          transition-transform
-          duration-300
-
-          ${
-            open
-              ? "translate-x-0"
-              : "-translate-x-full md:translate-x-0"
-          }
-        `}
+        className={`fixed left-0 top-0 z-50 h-screen w-64 border-r border-slate-200 bg-white shadow-xl transition-transform duration-300 md:static md:translate-x-0 ${
+          open ? "translate-x-0" : "-translate-x-full"
+        }`}
       >
-        <h2 className="text-2xl font-bold p-5 border-b">
-          Admin Panel
-        </h2>
+        <div className="border-b border-slate-200 px-5 py-5">
+          <h2 className="text-2xl font-bold text-slate-800">Admin Panel</h2>
+          <p className="mt-1 text-sm text-slate-500">Manage your data</p>
+        </div>
 
-        <ul className="flex flex-col">
-
+        <ul className="flex flex-col p-3">
           <Link
             to="/admin/dashboard"
             onClick={() => setOpen(false)}
-            className="p-4 hover:bg-gray-100"
+            className="mb-1 rounded-lg px-4 py-3 text-slate-700 transition hover:bg-slate-100 hover:text-slate-900"
           >
             Dashboard
           </Link>
@@ -96,7 +56,7 @@ const AdminSidebar = () => {
           <Link
             to="/admin/expenses"
             onClick={() => setOpen(false)}
-            className="p-4 hover:bg-gray-100"
+            className="mb-1 rounded-lg px-4 py-3 text-slate-700 transition hover:bg-slate-100 hover:text-slate-900"
           >
             Expenses
           </Link>
@@ -104,7 +64,7 @@ const AdminSidebar = () => {
           <Link
             to="/admin/users"
             onClick={() => setOpen(false)}
-            className="p-4 hover:bg-gray-100"
+            className="mb-1 rounded-lg px-4 py-3 text-slate-700 transition hover:bg-slate-100 hover:text-slate-900"
           >
             Users
           </Link>
@@ -112,25 +72,17 @@ const AdminSidebar = () => {
           <Link
             to="/admin/reports"
             onClick={() => setOpen(false)}
-            className="p-4 hover:bg-gray-100"
+            className="mb-1 rounded-lg px-4 py-3 text-slate-700 transition hover:bg-slate-100 hover:text-slate-900"
           >
             Reports
           </Link>
 
           <button
             onClick={logout}
-            className="
-              m-4
-              bg-red-500
-              hover:bg-red-600
-              text-white
-              p-2
-              rounded
-            "
+            className="mt-4 rounded-lg bg-red-500 px-4 py-3 font-medium text-white shadow-sm transition hover:bg-red-600"
           >
             Logout
           </button>
-
         </ul>
       </div>
     </>

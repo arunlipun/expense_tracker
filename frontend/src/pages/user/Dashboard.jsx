@@ -1,182 +1,265 @@
 
 
-
-
-
-
+// pages/user/Dashboard.jsx
 import { useEffect, useState } from "react";
 import { getUserDashboard } from "../../api/dashboardApi";
 
+/* ─── Shared tokens (Ledger system) ───────────────────────────────
+   Ground #FAFAF7 · Ink #1a1a2e · Rule #2D5BE3
+   Green #16A34A · Red #E5532D · Purple #7C3AED
+   Type: Sora (display) / Inter (body)
+──────────────────────────────────────────────────────────────────── */
 
+const FONTS = `@import url('https://fonts.googleapis.com/css2?family=Sora:wght@300;400;600;700;800&family=Inter:wght@300;400;500;600&display=swap');`;
+
+// ── Stat card ────────────────────────────────────────────────────────
+const StatCard = ({ label, value, accent, icon }) => (
+  <div
+    style={{
+      background: "#fff",
+      border: "1px solid rgba(26,26,46,.07)",
+      borderTop: `3px solid ${accent}`,
+      borderRadius: 10,
+      padding: "20px 22px",
+      display: "flex",
+      flexDirection: "column",
+      gap: 10,
+      transition: "transform .15s, box-shadow .15s",
+      cursor: "default",
+    }}
+    onMouseEnter={e => {
+      e.currentTarget.style.transform = "translateY(-2px)";
+      e.currentTarget.style.boxShadow = "0 6px 24px rgba(26,26,46,.08)";
+    }}
+    onMouseLeave={e => {
+      e.currentTarget.style.transform = "";
+      e.currentTarget.style.boxShadow = "";
+    }}
+  >
+    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+      <span style={{
+        fontSize: 10, fontWeight: 700, letterSpacing: ".1em",
+        textTransform: "uppercase", color: "#9CA3AF",
+        fontFamily: "'Sora', sans-serif",
+      }}>{label}</span>
+      <span style={{ fontSize: 20 }}>{icon}</span>
+    </div>
+    <span style={{
+      fontFamily: "'Sora', sans-serif",
+      fontSize: 26, fontWeight: 800,
+      color: accent, letterSpacing: "-.5px",
+    }}>{value}</span>
+  </div>
+);
+
+// ── Type badge ───────────────────────────────────────────────────────
+const TypeBadge = ({ type }) => {
+  const isIncome = type === "INCOME";
+  return (
+    <span style={{
+      display: "inline-block",
+      padding: "2px 9px",
+      borderRadius: 20,
+      fontSize: 11, fontWeight: 700,
+      letterSpacing: ".03em",
+      background: isIncome ? "#DCFCE7" : "#FEE2E2",
+      color: isIncome ? "#16A34A" : "#E5532D",
+      fontFamily: "'Sora', sans-serif",
+    }}>
+      {isIncome ? "▲" : "▼"} {type}
+    </span>
+  );
+};
+
+// ── Section heading ──────────────────────────────────────────────────
+const SectionTitle = ({ children }) => (
+  <div style={{ display: "flex", alignItems: "center", gap: 10, margin: "36px 0 18px" }}>
+    <div style={{ width: 4, height: 18, background: "#2D5BE3", borderRadius: 4 }} />
+    <h2 style={{
+      margin: 0, fontFamily: "'Sora', sans-serif",
+      fontSize: 16, fontWeight: 700, color: "#1a1a2e", letterSpacing: "-.2px",
+    }}>{children}</h2>
+  </div>
+);
+
+// ── Table wrapper ────────────────────────────────────────────────────
+const TableWrap = ({ heads, children, emptyMsg = "No data" }) => (
+  <div style={{
+    background: "#fff",
+    border: "1px solid rgba(26,26,46,.07)",
+    borderRadius: 10,
+    overflow: "hidden",
+  }}>
+    <div style={{ overflowX: "auto" }}>
+      <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
+        <thead>
+          <tr style={{ background: "#F5F5F2" }}>
+            {heads.map(h => (
+              <th key={h} style={{
+                padding: "11px 16px", textAlign: "left",
+                fontSize: 10, fontWeight: 700, letterSpacing: ".1em",
+                textTransform: "uppercase", color: "#9CA3AF",
+                borderBottom: "1px solid rgba(26,26,46,.06)",
+                fontFamily: "'Sora', sans-serif",
+              }}>{h}</th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>{children}</tbody>
+      </table>
+    </div>
+  </div>
+);
+
+// ── Table row ────────────────────────────────────────────────────────
+const TR = ({ cells }) => (
+  <tr
+    style={{ transition: "background .1s", borderBottom: "1px solid rgba(26,26,46,.04)" }}
+    onMouseEnter={e => e.currentTarget.style.background = "#FAFAF7"}
+    onMouseLeave={e => e.currentTarget.style.background = ""}
+  >
+    {cells.map((c, i) => (
+      <td key={i} style={{ padding: "13px 16px", color: "#374151", verticalAlign: "middle" }}>{c}</td>
+    ))}
+  </tr>
+);
+
+// ── Skeleton ─────────────────────────────────────────────────────────
+const Skeleton = () => (
+  <div style={{ padding: "40px 32px", fontFamily: "'Inter', sans-serif" }}>
+    <div style={{ height: 28, width: 200, background: "#F0F0EC", borderRadius: 6, marginBottom: 32, animation: "skpulse 1.4s infinite" }} />
+    <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 14 }}>
+      {[...Array(4)].map((_, i) => (
+        <div key={i} style={{ height: 90, background: "#F0F0EC", borderRadius: 10, animation: "skpulse 1.4s infinite" }} />
+      ))}
+    </div>
+    <style>{`@keyframes skpulse{0%,100%{opacity:1}50%{opacity:.45}}`}</style>
+  </div>
+);
+
+// ════════════════════════════════════════════════════════════════════
 const Dashboard = () => {
-
   const [dashboard, setDashboard] = useState(null);
 
   useEffect(() => {
-
     const fetchDashboard = async () => {
-
       try {
-
         const response = await getUserDashboard();
-        console.log(dashboard)
-
+        console.log(dashboard);
         setDashboard(response.data.data);
-
       } catch (error) {
-
         console.log(error);
-
       }
     };
-
     fetchDashboard();
-
   }, []);
 
-  if (!dashboard)
-    return <h2>Loading...</h2>;
+  if (!dashboard) return <Skeleton />;
+
+  const stats = [
+    { label: "Total Income",       value: `₹${dashboard.totalIncome?.toLocaleString()}`,       accent: "#16A34A", icon: "💰" },
+    { label: "Total Expense",      value: `₹${dashboard.totalExpense?.toLocaleString()}`,      accent: "#E5532D", icon: "📤" },
+    { label: "Balance",            value: `₹${dashboard.balance?.toLocaleString()}`,           accent: "#2D5BE3", icon: "🏦" },
+    { label: "Total Transactions", value: dashboard.totalTransactions,                         accent: "#7C3AED", icon: "📋" },
+  ];
 
   return (
+    <div style={{
+      fontFamily: "'Inter', sans-serif",
+      background: "#FAFAF7",
+      minHeight: "100vh",
+      padding: "32px 28px 56px",
+    }}>
+      <style>{`${FONTS}
+        @media(max-width:640px){
+          .dash-grid{grid-template-columns:repeat(2,1fr)!important;}
+          .dash-grid-cat{grid-template-columns:1fr!important;}
+        }
+      `}</style>
 
-    <div>
-
-      <h1 className="text-3xl font-bold mb-6">
-        User Dashboard
-      </h1>
-
-      {/* Summary Cards */}
-
-      <div className="grid md:grid-cols-4 gap-4">
-
-        <div className="bg-green-500 text-white p-4 rounded">
-          <h3>Total Income</h3>
-          <p>₹ {dashboard.totalIncome}</p>
-        </div>
-
-        <div className="bg-red-500 text-white p-4 rounded">
-          <h3>Total Expense</h3>
-          <p>₹ {dashboard.totalExpense}</p>
-        </div>
-
-        <div className="bg-blue-500 text-white p-4 rounded">
-          <h3>Balance</h3>
-          <p>₹ {dashboard.balance}</p>
-        </div>
-
-        <div className="bg-purple-500 text-white p-4 rounded">
-          <h3>Total Transactions</h3>
-          <p>{dashboard.totalTransactions}</p>
-        </div>
-
+      {/* ── Page header ─────────────────────────────────────────── */}
+      <div style={{ marginBottom: 28 }}>
+        <p style={{
+          margin: "0 0 4px", fontSize: 11, fontWeight: 700,
+          letterSpacing: ".1em", textTransform: "uppercase",
+          color: "#2D5BE3", fontFamily: "'Sora', sans-serif",
+        }}>Overview</p>
+        <h1 style={{
+          margin: 0, fontFamily: "'Sora', sans-serif",
+          fontSize: 26, fontWeight: 800, color: "#1a1a2e", letterSpacing: "-.5px",
+        }}>My Dashboard</h1>
       </div>
 
-      {/* Recent Transactions */}
+      {/* ── Stat cards ──────────────────────────────────────────── */}
+      <div className="dash-grid" style={{
+        display: "grid",
+        gridTemplateColumns: "repeat(4, 1fr)",
+        gap: 14,
+      }}>
+        {stats.map(s => <StatCard key={s.label} {...s} />)}
+      </div>
 
-      <h2 className="text-2xl font-bold mt-8 mb-4">
-        Recent Transactions
-      </h2>
+      {/* ── Recent transactions ─────────────────────────────────── */}
+      <SectionTitle>Recent Transactions</SectionTitle>
+      <TableWrap heads={["Title", "Category", "Amount", "Type", "Date"]}>
+        {dashboard.recentTransactions.map(item => (
+          <TR key={item.id} cells={[
+            <span style={{ fontWeight: 600, color: "#1a1a2e" }}>{item.title}</span>,
+            <span style={{
+              background: "#F0F0EC", borderRadius: 6,
+              padding: "2px 8px", fontSize: 11, fontWeight: 600, color: "#6B7280",
+              fontFamily: "'Sora', sans-serif",
+            }}>{item.category}</span>,
+            <span style={{ fontWeight: 700, fontFamily: "'Sora', sans-serif", color: "#1a1a2e" }}>
+              ₹{item.amount?.toLocaleString()}
+            </span>,
+            <TypeBadge type={item.type} />,
+            <span style={{ color: "#9CA3AF", fontSize: 12 }}>
+              {new Date(item.date).toLocaleDateString()}
+            </span>,
+          ]} />
+        ))}
+      </TableWrap>
 
-      <table className="w-full border bg-white">
-
-        <thead>
-
-          <tr className="bg-gray-100">
-
-            <th className="p-3">Title</th>
-            <th className="p-3">Category</th>
-            <th className="p-3">Amount</th>
-            <th className="p-3">Type</th>
-            <th className="p-3">Date</th>
-
-          </tr>
-
-        </thead>
-
-        <tbody>
-
-          {dashboard.recentTransactions.map((item) => (
-
-            <tr key={item.id}>
-
-              <td className="p-3">{item.title}</td>
-
-              <td className="p-3">{item.category}</td>
-
-              <td className="p-3">₹ {item.amount}</td>
-
-                <span
-    className={`px-2 py-1 rounded text-sm font-medium ${
-      item.type === "INCOME"
-        ? "bg-green-100 text-green-700"
-        : "bg-red-100 text-red-700"
-    }`}
-  >
-    {item.type}
-  </span>
-
-              <td className="p-3">
-                {new Date(item.date).toLocaleDateString()}
-              </td>
-
-            </tr>
-
-          ))}
-
-        </tbody>
-
-      </table>
-
-      {/* Category Wise */}
-
-      <h2 className="text-2xl font-bold mt-8 mb-4">
-        Category Wise Expenses
-      </h2>
-
-      <table className="w-full border bg-white">
-
-        <thead>
-
-          <tr className="bg-gray-100">
-
-            <th className="p-3">Category</th>
-
-            <th className="p-3">Total Amount</th>
-
-            <th className="p-3">Transactions</th>
-
-          </tr>
-
-        </thead>
-
-        <tbody>
-
-          {dashboard.categoryWiseExpenses.map(
-            (item, index) => (
-
-              <tr key={index}>
-
-                <td className="p-3">
-                  {item.category}
-                </td>
-
-                <td className="p-3">
-                  ₹ {item.totalAmount}
-                </td>
-
-                <td className="p-3">
-                  {item.transactionCount}
-                </td>
-
-              </tr>
-
-            )
-          )}
-
-        </tbody>
-
-      </table>
-
+      {/* ── Category wise ───────────────────────────────────────── */}
+      <SectionTitle>Category Breakdown</SectionTitle>
+      <div className="dash-grid-cat" style={{
+        display: "grid",
+        gridTemplateColumns: "1fr 1fr",
+        gap: 14,
+      }}>
+        {dashboard.categoryWiseExpenses.map((item, index) => {
+          // visual bar: percentage relative to largest category
+          const max = Math.max(...dashboard.categoryWiseExpenses.map(c => c.totalAmount));
+          const pct = max > 0 ? (item.totalAmount / max) * 100 : 0;
+          return (
+            <div key={index} style={{
+              background: "#fff",
+              border: "1px solid rgba(26,26,46,.07)",
+              borderRadius: 10,
+              padding: "18px 20px",
+            }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
+                <span style={{ fontWeight: 600, color: "#1a1a2e", fontSize: 14 }}>{item.category}</span>
+                <span style={{ fontFamily: "'Sora', sans-serif", fontWeight: 800, fontSize: 15, color: "#E5532D" }}>
+                  ₹{item.totalAmount?.toLocaleString()}
+                </span>
+              </div>
+              {/* Bar */}
+              <div style={{ height: 4, background: "#F0F0EC", borderRadius: 2, overflow: "hidden", marginBottom: 8 }}>
+                <div style={{
+                  height: "100%", width: `${pct}%`,
+                  background: "#2D5BE3", borderRadius: 2,
+                  transition: "width .4s ease",
+                }} />
+              </div>
+              <div style={{ fontSize: 11, color: "#9CA3AF" }}>
+                {item.transactionCount} transaction{item.transactionCount !== 1 ? "s" : ""}
+              </div>
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 };

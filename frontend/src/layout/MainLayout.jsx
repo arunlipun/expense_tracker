@@ -1,5 +1,7 @@
 
 
+
+
 import { Outlet } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import Sidebar from "../components/Sidebar";
@@ -7,20 +9,21 @@ import Footer from "../pages/public/Footer";
 
 const MainLayout = () => {
   return (
-    <div className="min-h-screen bg-gray-100">
+    <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column", background: "#FAFAF7" }}>
 
       <Navbar />
 
-      <div className="flex">
+      <div style={{ display: "flex", flex: 1 }}>
 
         <Sidebar />
 
-        <main className="flex-1 p-6">
+        <main style={{ flex: 1, padding: "0", overflowX: "hidden" }}>
           <Outlet />
-          <Footer/>
         </main>
 
       </div>
+
+      <Footer />
 
     </div>
   );

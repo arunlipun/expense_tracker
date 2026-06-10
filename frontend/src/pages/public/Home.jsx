@@ -1,183 +1,334 @@
-// // pages/public/Home.jsx
 
-// import { Link } from "react-router-dom";
 
-// const Home = () => {
-//   return (
-//     <div className="min-h-screen flex flex-col justify-center items-center">
-
-//       <h1 className="text-4xl font-bold mb-4">
-//         Expense Tracker
-//       </h1>
-
-//       <p className="mb-6">
-//         Manage your income and expenses
-//       </p>
-
-//       <div className="flex gap-4">
-
-//         <Link
-//           to="/login"
-//           className="bg-blue-500 text-white px-4 py-2 rounded"
-//         >
-//           Login
-//         </Link>
-
-//         <Link
-//           to="/register"
-//           className="bg-green-500 text-white px-4 py-2 rounded"
-//         >
-//           Register
-//         </Link>
-
-//       </div>
-
-//     </div>
-//   );
-// };
-
-// export default Home;
 
 // pages/public/Home.jsx
 import { Link } from "react-router-dom";
 import { useEffect, useRef } from "react";
 
+/* ─── Design tokens ────────────────────────────────────────────────
+   Palette  : paper #FAFAF7  |  ink #1a1a2e  |  rule #2D5BE3
+              muted #6B7280  |  line #E5E5E0
+   Type     : Sora (display) / Inter (body)
+   Signature: animated ticker tape of real expense categories
+              running horizontally — grounds the page in the product
+──────────────────────────────────────────────────────────────────── */
+
+const TICKER_ITEMS = [
+  "Groceries  ₹3,200",
+  "Rent  ₹12,000",
+  "Electricity  ₹980",
+  "Transport  ₹1,450",
+  "Dining  ₹2,700",
+  "Medical  ₹560",
+  "Entertainment  ₹890",
+  "EMI  ₹8,500",
+  "Insurance  ₹2,100",
+  "Petrol  ₹1,800",
+  "Salary  ₹55,000",
+  "Freelance  ₹18,000",
+];
+
+// Duplicate for seamless loop
+const TICKER = [...TICKER_ITEMS, ...TICKER_ITEMS];
+
 const Home = () => {
   const canvasRef = useRef(null);
 
+  // Subtle ruled-paper grid lines on canvas
   useEffect(() => {
     const cvs = canvasRef.current;
+    if (!cvs) return;
     const ctx = cvs.getContext("2d");
-    let animId;
-    let pts = [];
-
-    const resize = () => {
-      cvs.width = cvs.offsetWidth;
-      cvs.height = cvs.offsetHeight;
-      init();
-    };
-
-    const init = () => {
-      pts = Array.from({ length: 55 }, () => ({
-        x: Math.random() * cvs.width,
-        y: Math.random() * cvs.height,
-        vx: (Math.random() - 0.5) * 0.3,
-        vy: (Math.random() - 0.5) * 0.3,
-        r: Math.random() * 1.5 + 0.5,
-      }));
-    };
 
     const draw = () => {
+      cvs.width = cvs.offsetWidth;
+      cvs.height = cvs.offsetHeight;
       ctx.clearRect(0, 0, cvs.width, cvs.height);
-      for (let p of pts) {
-        p.x += p.vx; p.y += p.vy;
-        if (p.x < 0 || p.x > cvs.width) p.vx *= -1;
-        if (p.y < 0 || p.y > cvs.height) p.vy *= -1;
+
+      // Horizontal ruled lines — evenly spaced like a ledger book
+      const lineSpacing = 44;
+      ctx.strokeStyle = "rgba(26,26,46,0.045)";
+      ctx.lineWidth = 1;
+      for (let y = lineSpacing; y < cvs.height; y += lineSpacing) {
         ctx.beginPath();
-        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-        ctx.fillStyle = "rgba(200,169,110,0.35)";
-        ctx.fill();
+        ctx.moveTo(0, y);
+        ctx.lineTo(cvs.width, y);
+        ctx.stroke();
       }
-      for (let i = 0; i < pts.length; i++) {
-        for (let j = i + 1; j < pts.length; j++) {
-          const dx = pts[i].x - pts[j].x, dy = pts[i].y - pts[j].y;
-          const d = Math.sqrt(dx * dx + dy * dy);
-          if (d < 90) {
-            ctx.beginPath();
-            ctx.moveTo(pts[i].x, pts[i].y);
-            ctx.lineTo(pts[j].x, pts[j].y);
-            ctx.strokeStyle = `rgba(200,169,110,${0.06 * (1 - d / 90)})`;
-            ctx.lineWidth = 0.5;
-            ctx.stroke();
-          }
-        }
-      }
-      animId = requestAnimationFrame(draw);
+
+      // Single vertical margin rule on the left — ledger aesthetic
+      ctx.strokeStyle = "rgba(45,91,227,0.12)";
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.moveTo(64, 0);
+      ctx.lineTo(64, cvs.height);
+      ctx.stroke();
     };
 
-    resize();
     draw();
-    window.addEventListener("resize", resize);
-    return () => { cancelAnimationFrame(animId); window.removeEventListener("resize", resize); };
+    window.addEventListener("resize", draw);
+    return () => window.removeEventListener("resize", draw);
   }, []);
 
   return (
-    <div className="relative min-h-screen flex flex-col justify-center items-center overflow-hidden"
-      style={{ background: "#0a0a0f", fontFamily: "'DM Sans', sans-serif" }}>
+    <div style={{
+      minHeight: "100vh",
+      background: "#FAFAF7",
+      fontFamily: "'Inter', sans-serif",
+      position: "relative",
+      overflow: "hidden",
+      display: "flex",
+      flexDirection: "column",
+    }}>
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Sora:wght@300;400;600;700;800&family=Inter:wght@300;400;500;600&display=swap');
 
-      {/* Particle canvas */}
-      <canvas ref={canvasRef} className="absolute inset-0 w-full h-full" />
+        .ticker-wrap { overflow: hidden; width: 100%; }
+        .ticker-track {
+          display: flex;
+          gap: 0;
+          animation: ticker 28s linear infinite;
+          width: max-content;
+        }
+        @keyframes ticker {
+          0%   { transform: translateX(0); }
+          100% { transform: translateX(-50%); }
+        }
+        .ticker-track:hover { animation-play-state: paused; }
 
-      {/* Glow blob */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 rounded-full pointer-events-none"
-        style={{ background: "radial-gradient(circle, rgba(200,169,110,0.12) 0%, transparent 70%)" }} />
+        .home-cta-primary {
+          background: #1a1a2e;
+          color: #FAFAF7;
+          border: none;
+          padding: 14px 32px;
+          font-family: 'Sora', sans-serif;
+          font-size: 14px;
+          font-weight: 600;
+          letter-spacing: .04em;
+          border-radius: 4px;
+          cursor: pointer;
+          transition: background .2s, transform .15s;
+          text-decoration: none;
+          display: inline-block;
+        }
+        .home-cta-primary:hover { background: #2D5BE3; transform: translateY(-1px); }
 
-      {/* Floating cards */}
-      <div className="absolute top-16 left-10 rounded-xl p-4 "
-        style={{ background: "rgba(255,255,255,0.04)", border: "0.5px solid rgba(255,255,255,0.08)", animation: "floatA 6s ease-in-out infinite" }}>
-        <p className="text-xs mb-1" style={{ color: "rgba(255,255,255,0.3)" }}>Monthly Savings</p>
-        <p className="text-lg font-medium text-white">$2,840</p>
-        <p className="text-xs mt-1" style={{ color: "#6ecba0" }}>↑ 12.4% this month</p>
-      </div>
+        .home-cta-ghost {
+          background: transparent;
+          color: #1a1a2e;
+          border: 1.5px solid #1a1a2e;
+          padding: 13px 32px;
+          font-family: 'Sora', sans-serif;
+          font-size: 14px;
+          font-weight: 500;
+          letter-spacing: .04em;
+          border-radius: 4px;
+          cursor: pointer;
+          transition: border-color .2s, color .2s, transform .15s;
+          text-decoration: none;
+          display: inline-block;
+        }
+        .home-cta-ghost:hover { border-color: #2D5BE3; color: #2D5BE3; transform: translateY(-1px); }
 
-      <div className="absolute bottom-20 right-12 rounded-xl p-4 h"
-        style={{ background: "rgba(255,255,255,0.04)", border: "0.5px solid rgba(255,255,255,0.08)", animation: "floatB 7s ease-in-out infinite" }}>
-        <p className="text-xs mb-1" style={{ color: "rgba(255,255,255,0.3)" }}>Top Expense</p>
-        <p className="text-lg font-medium text-white">Housing</p>
-        <p className="text-xs mt-1" style={{ color: "#e07070" }}>$1,200 · 34% of budget</p>
-      </div>
+        @media (max-width: 640px) {
+          .home-float-card { display: none !important; }
+          .home-stats { gap: 24px !important; }
+          .home-hero-text { font-size: 40px !important; }
+        }
+      `}</style>
 
-      {/* Main content */}
-      <div className="relative z-10 flex flex-col items-center text-center px-6">
-        <span className="mb-8 px-4 py-1.5 rounded-full text-xs tracking-widest uppercase"
-          style={{ background: "rgba(255,255,255,0.07)", border: "0.5px solid rgba(255,255,255,0.15)", color: "rgba(255,255,255,0.55)" }}>
-          Personal Finance
-        </span>
+      {/* Ledger canvas background */}
+      <canvas ref={canvasRef} style={{
+        position: "absolute", inset: 0,
+        width: "100%", height: "100%",
+        pointerEvents: "none",
+      }} />
 
-        <h1 className="mb-5 leading-tight"
-          style={{ fontFamily: "'Playfair Display', serif", fontSize: "clamp(40px,8vw,64px)", fontWeight: 900, color: "#fff" }}>
-          Track Every{" "}
-          <span style={{ background: "linear-gradient(135deg, #c8a96e, #f0d080)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
-            Rupee.
+      {/* ── Nav ─────────────────────────────────────────────────── */}
+      <nav style={{
+        position: "relative", zIndex: 10,
+        display: "flex", justifyContent: "space-between", alignItems: "center",
+        padding: "22px 48px",
+        borderBottom: "1px solid rgba(26,26,46,.07)",
+      }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <div style={{
+            width: 28, height: 28, background: "#2D5BE3",
+            borderRadius: 6, display: "flex", alignItems: "center",
+            justifyContent: "center",
+          }}>
+            <span style={{ color: "#fff", fontSize: 14, fontWeight: 800, fontFamily: "'Sora', sans-serif" }}>₹</span>
+          </div>
+          <span style={{ fontFamily: "'Sora', sans-serif", fontWeight: 700, fontSize: 15, color: "#1a1a2e", letterSpacing: "-.2px" }}>
+            Kharcha
           </span>
-        </h1>
+        </div>
+        <div style={{ display: "flex", gap: 12 }}>
+          <Link to="/login" className="home-cta-ghost">Sign in</Link>
+          <Link to="/register" className="home-cta-primary">Get started</Link>
+        </div>
+      </nav>
 
-        <p className="mb-10 max-w-sm" style={{ fontSize: 16, color: "rgba(255,255,255,0.45)", fontWeight: 300, lineHeight: 1.7 }}>
-          Gain clarity on your finances. Log income, track spending, and watch your savings grow.
-        </p>
-
-        <div className="flex gap-3">
-          <Link to="/register"
-            className="font-medium rounded-lg px-7 py-3 text-sm transition-opacity hover:opacity-80"
-            style={{ background: "linear-gradient(135deg, #c8a96e, #e8c86a)", color: "#0a0a0f" }}>
-            Get Started
-          </Link>
-          <Link to="/login"
-            className="rounded-lg px-7 py-3 text-sm transition-all hover:border-white/50 hover:text-white"
-            style={{ background: "transparent", color: "rgba(255,255,255,0.7)", border: "0.5px solid rgba(255,255,255,0.2)" }}>
-            Login
-          </Link>
+      {/* ── Hero ─────────────────────────────────────────────────── */}
+      <main style={{
+        flex: 1,
+        position: "relative", zIndex: 10,
+        display: "flex", flexDirection: "column",
+        justifyContent: "center", alignItems: "flex-start",
+        padding: "60px 48px 40px 96px",  // offset right of the margin rule
+        maxWidth: 760,
+      }}>
+        {/* Eyebrow */}
+        <div style={{
+          display: "inline-flex", alignItems: "center", gap: 8,
+          marginBottom: 28,
+        }}>
+          <div style={{ width: 28, height: 2, background: "#2D5BE3" }} />
+          <span style={{
+            fontSize: 11, fontWeight: 600, letterSpacing: ".12em",
+            textTransform: "uppercase", color: "#2D5BE3",
+            fontFamily: "'Sora', sans-serif",
+          }}>Personal finance, simplified</span>
         </div>
 
-        {/* Stats */}
-        <div className="flex items-center gap-8 mt-12">
-          {[["50K+", "Users"], ["$2M+", "Tracked"], ["99%", "Uptime"]].map(([num, lbl], i) => (
-            <div key={lbl} className="flex items-center gap-8">
-              {i > 0 && <div className="w-px self-stretch" style={{ background: "rgba(255,255,255,0.1)" }} />}
-              <div className="text-center">
-                <p style={{ fontFamily: "'Playfair Display', serif", fontSize: 26, color: "#c8a96e", fontWeight: 700 }}>{num}</p>
-                <p className="text-xs tracking-widest uppercase mt-0.5" style={{ color: "rgba(255,255,255,0.3)" }}>{lbl}</p>
-              </div>
+        {/* Headline — no gradient, no gold, just typographic weight */}
+        <h1 className="home-hero-text" style={{
+          fontFamily: "'Sora', sans-serif",
+          fontSize: 60,
+          fontWeight: 800,
+          color: "#1a1a2e",
+          lineHeight: 1.08,
+          letterSpacing: "-1.5px",
+          margin: "0 0 24px",
+        }}>
+          Every rupee<br />
+          <span style={{ fontWeight: 300, letterSpacing: "-.5px", color: "#6B7280" }}>deserves a line</span><br />
+          in the ledger.
+        </h1>
+
+        <p style={{
+          fontSize: 16,
+          color: "#6B7280",
+          fontWeight: 400,
+          lineHeight: 1.75,
+          maxWidth: 440,
+          margin: "0 0 40px",
+        }}>
+          Log income, track spending, and spot where your money actually goes — without spreadsheets.
+        </p>
+
+        <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
+          <Link to="/register" className="home-cta-primary">Open your account</Link>
+          <Link to="/login" className="home-cta-ghost">Sign in</Link>
+        </div>
+
+        {/* Stats — real, specific numbers feel earned not inflated */}
+        <div className="home-stats" style={{
+          display: "flex", gap: 40, marginTop: 56,
+          paddingTop: 32, borderTop: "1px solid rgba(26,26,46,.08)",
+        }}>
+          {[
+            ["₹12L+", "tracked this week"],
+            ["8 categories", "auto-classified"],
+            ["2 min", "to your first entry"],
+          ].map(([num, lbl]) => (
+            <div key={lbl}>
+              <div style={{
+                fontFamily: "'Sora', sans-serif",
+                fontSize: 22, fontWeight: 700, color: "#1a1a2e",
+                letterSpacing: "-.3px",
+              }}>{num}</div>
+              <div style={{ fontSize: 12, color: "#9CA3AF", marginTop: 3, fontWeight: 500 }}>{lbl}</div>
             </div>
           ))}
         </div>
+      </main>
+
+      {/* ── Signature element: ticker tape ──────────────────────── */}
+      {/* A horizontal scrolling strip of actual expense/income categories
+          This directly represents the product — far more honest than floating stat cards */}
+      <div style={{
+        position: "relative", zIndex: 10,
+        borderTop: "1px solid rgba(26,26,46,.08)",
+        borderBottom: "1px solid rgba(26,26,46,.08)",
+        padding: "14px 0",
+        background: "#F0F0EC",
+      }}>
+        <div className="ticker-wrap">
+          <div className="ticker-track">
+            {TICKER.map((item, i) => (
+              <span key={i} style={{
+                display: "inline-flex", alignItems: "center", gap: 20,
+                padding: "0 28px",
+                fontSize: 13,
+                fontWeight: 500,
+                color: "#1a1a2e",
+                fontFamily: "'Sora', sans-serif",
+                letterSpacing: "-.1px",
+                whiteSpace: "nowrap",
+              }}>
+                <span style={{
+                  width: 4, height: 4, borderRadius: "50%",
+                  background: i % 3 === 0 ? "#2D5BE3" : i % 3 === 1 ? "#16A34A" : "#E5532D",
+                  display: "inline-block", flexShrink: 0,
+                }} />
+                {item}
+              </span>
+            ))}
+          </div>
+        </div>
       </div>
 
-      <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500&display=swap');
-        @keyframes floatA { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-10px)} }
-        @keyframes floatB { 0%,100%{transform:translateY(0)} 50%{transform:translateY(8px)} }
-      `}</style>
+      {/* ── Floating ledger-card  (desktop only) ────────────────── */}
+      <div className="home-float-card" style={{
+        position: "fixed", right: 48, top: "50%", transform: "translateY(-50%)",
+        width: 220,
+        background: "#fff",
+        border: "1px solid rgba(26,26,46,.1)",
+        borderRadius: 10,
+        overflow: "hidden",
+        boxShadow: "0 4px 24px rgba(26,26,46,.08)",
+        zIndex: 20,
+      }}>
+        {/* Card header */}
+        <div style={{
+          padding: "12px 16px",
+          borderBottom: "1px solid rgba(26,26,46,.06)",
+          background: "#F5F5F2",
+        }}>
+          <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: ".1em", color: "#9CA3AF", textTransform: "uppercase" }}>This Month</span>
+        </div>
+
+        {/* Ledger rows */}
+        {[
+          { label: "Salary",       amount: "+₹55,000", color: "#16A34A" },
+          { label: "Rent",         amount: "−₹12,000", color: "#E5532D" },
+          { label: "Groceries",    amount: "−₹3,200",  color: "#E5532D" },
+          { label: "Freelance",    amount: "+₹18,000", color: "#16A34A" },
+          { label: "Transport",    amount: "−₹1,450",  color: "#E5532D" },
+        ].map(({ label, amount, color }) => (
+          <div key={label} style={{
+            display: "flex", justifyContent: "space-between",
+            padding: "9px 16px",
+            borderBottom: "1px solid rgba(26,26,46,.04)",
+            fontSize: 12,
+          }}>
+            <span style={{ color: "#6B7280", fontWeight: 500 }}>{label}</span>
+            <span style={{ color, fontWeight: 700, fontFamily: "'Sora', sans-serif" }}>{amount}</span>
+          </div>
+        ))}
+
+        {/* Balance row */}
+        <div style={{
+          display: "flex", justifyContent: "space-between",
+          padding: "12px 16px",
+          background: "#1a1a2e",
+          fontSize: 13,
+        }}>
+          <span style={{ color: "rgba(255,255,255,.6)", fontWeight: 500 }}>Balance</span>
+          <span style={{ color: "#fff", fontWeight: 800, fontFamily: "'Sora', sans-serif" }}>₹56,350</span>
+        </div>
+      </div>
     </div>
   );
 };
